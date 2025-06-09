@@ -102,8 +102,8 @@
 
         .gradient-strip {
             flex: 1;
-            background-size: 300% 100%;
-            animation: flowRight 6s linear infinite;
+            background-size: 400% 100%;
+            animation: flowRight 8s linear infinite;
         }
 
         .gradient-strip:nth-child(even) {
@@ -111,46 +111,46 @@
         }
 
         @keyframes flowRight {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 300% 50%; }
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 0%; }
         }
 
         @keyframes flowLeft {
-            0% { background-position: 300% 50%; }
-            100% { background-position: 0% 50%; }
+            0% { background-position: 100% 0%; }
+            100% { background-position: 0% 0%; }
         }
 
         .strip-1 { 
-            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea, #764ba2);
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
             animation-delay: 0s;
         }
         .strip-2 { 
-            background: linear-gradient(90deg, #f093fb, #f5576c, #43e97b, #f093fb, #f5576c);
-            animation-delay: -0.5s;
-        }
-        .strip-3 { 
-            background: linear-gradient(90deg, #4facfe, #00f2fe, #fa709a, #4facfe, #00f2fe);
+            background: linear-gradient(90deg, #f093fb, #f5576c, #43e97b, #f093fb);
             animation-delay: -1s;
         }
-        .strip-4 { 
-            background: linear-gradient(90deg, #43e97b, #38f9d7, #ff9a9e, #43e97b, #38f9d7);
-            animation-delay: -1.5s;
-        }
-        .strip-5 { 
-            background: linear-gradient(90deg, #fa709a, #fee140, #667eea, #fa709a, #fee140);
+        .strip-3 { 
+            background: linear-gradient(90deg, #4facfe, #00f2fe, #fa709a, #4facfe);
             animation-delay: -2s;
         }
-        .strip-6 { 
-            background: linear-gradient(90deg, #a8edea, #fed6e3, #4facfe, #a8edea, #fed6e3);
-            animation-delay: -2.5s;
-        }
-        .strip-7 { 
-            background: linear-gradient(90deg, #ff9a9e, #fecfef, #43e97b, #ff9a9e, #fecfef);
+        .strip-4 { 
+            background: linear-gradient(90deg, #43e97b, #38f9d7, #ff9a9e, #43e97b);
             animation-delay: -3s;
         }
+        .strip-5 { 
+            background: linear-gradient(90deg, #fa709a, #fee140, #a8edea, #fa709a);
+            animation-delay: -4s;
+        }
+        .strip-6 { 
+            background: linear-gradient(90deg, #a8edea, #fed6e3, #4facfe, #a8edea);
+            animation-delay: -5s;
+        }
+        .strip-7 { 
+            background: linear-gradient(90deg, #ff9a9e, #fecfef, #43e97b, #ff9a9e);
+            animation-delay: -6s;
+        }
         .strip-8 { 
-            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea, #764ba2);
-            animation-delay: -3.5s;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
+            animation-delay: -7s;
         }
 
         .card-container {
@@ -173,6 +173,9 @@
             max-width: 90vw;
             text-align: center;
             transition: all 0.3s ease;
+            cursor: move;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .card-content h2 {
@@ -183,7 +186,7 @@
 
         .card-content p {
             font-size: 16px;
-            color: #666;
+            color: #000;
             line-height: 1.6;
         }
 
@@ -308,7 +311,7 @@
                 <div class="liquid-glass" id="liquidGlassCard">
                     <div class="card-content">
                         <h2>Liquid Glass</h2>
-                        <p>Adjust the controls to customize the glass morphism effect. Watch how it interacts with the animated background.</p>
+                        <p>Adjust the controls to customize the glass morphism effect. Drag to see how it interacts with the background.</p>
                     </div>
                 </div>
             </div>
@@ -428,6 +431,64 @@
 
         // Initialize
         updateCard();
+
+        // Make card draggable
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        function dragStart(e) {
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX - xOffset;
+                initialY = e.touches[0].clientY - yOffset;
+            } else {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+            }
+
+            if (e.target === card || card.contains(e.target)) {
+                isDragging = true;
+            }
+        }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                
+                if (e.type === "touchmove") {
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                } else {
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                }
+
+                xOffset = currentX;
+                yOffset = currentY;
+
+                card.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
+            }
+        }
+
+        // Add event listeners for dragging
+        document.addEventListener("mousedown", dragStart);
+        document.addEventListener("mouseup", dragEnd);
+        document.addEventListener("mousemove", drag);
+        
+        // Touch events for mobile
+        document.addEventListener("touchstart", dragStart);
+        document.addEventListener("touchend", dragEnd);
+        document.addEventListener("touchmove", drag);
     </script>
 </body>
 </html>
