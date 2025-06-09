@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Glass Effect Playground</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f0f0;
+            min-height: 100vh;
+        }
+
+        .playground {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .playground {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            
+            .controls {
+                max-height: 40vh;
+                order: 2;
+            }
+            
+            .preview-area {
+                order: 1;
+                min-height: 60vh;
+            }
+        }
+
+        .controls {
+            background: #fff;
+            padding: 20px;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+        }
+
+        .controls h1 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .control-group input[type="color"] {
+            width: 50px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .value-display {
+            font-size: 12px;
+            color: #777;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        .preview-area {
+            position: relative;
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+
+        .gradient-strips {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gradient-strip {
+            flex: 1;
+            background-size: 300% 100%;
+            animation: flowRight 6s linear infinite;
+        }
+
+        .gradient-strip:nth-child(even) {
+            animation: flowLeft 8s linear infinite;
+        }
+
+        @keyframes flowRight {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
+        }
+
+        @keyframes flowLeft {
+            0% { background-position: 300% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .strip-1 { 
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea, #764ba2);
+            animation-delay: 0s;
+        }
+        .strip-2 { 
+            background: linear-gradient(90deg, #f093fb, #f5576c, #43e97b, #f093fb, #f5576c);
+            animation-delay: -0.5s;
+        }
+        .strip-3 { 
+            background: linear-gradient(90deg, #4facfe, #00f2fe, #fa709a, #4facfe, #00f2fe);
+            animation-delay: -1s;
+        }
+        .strip-4 { 
+            background: linear-gradient(90deg, #43e97b, #38f9d7, #ff9a9e, #43e97b, #38f9d7);
+            animation-delay: -1.5s;
+        }
+        .strip-5 { 
+            background: linear-gradient(90deg, #fa709a, #fee140, #667eea, #fa709a, #fee140);
+            animation-delay: -2s;
+        }
+        .strip-6 { 
+            background: linear-gradient(90deg, #a8edea, #fed6e3, #4facfe, #a8edea, #fed6e3);
+            animation-delay: -2.5s;
+        }
+        .strip-7 { 
+            background: linear-gradient(90deg, #ff9a9e, #fecfef, #43e97b, #ff9a9e, #fecfef);
+            animation-delay: -3s;
+        }
+        .strip-8 { 
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea, #764ba2);
+            animation-delay: -3.5s;
+        }
+
+        .card-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.4);
+            border: .5px solid rgba(0, 0, 0, .1);
+            -webkit-backdrop-filter: blur(20px) contrast(130%) saturate(150%);
+            backdrop-filter: blur(20px) contrast(130%) saturate(150%);
+            box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border-radius: 16px;
+            width: 300px;
+            max-width: 90vw;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .card-content h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .card-content p {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .reset-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .reset-btn:hover {
+            background: #0056b3;
+        }
+
+        .css-output {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            color: #495057;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="playground">
+        <div class="controls">
+            <h1>Liquid Glass Controls</h1>
+            
+            <div class="control-group">
+                <label for="bgOpacity">Background Opacity</label>
+                <input type="range" id="bgOpacity" min="0" max="1" step="0.01" value="0.4">
+                <div class="value-display" id="bgOpacityValue">0.4</div>
+            </div>
+
+            <div class="control-group">
+                <label for="bgColor">Background Color</label>
+                <input type="color" id="bgColor" value="#ffffff">
+            </div>
+
+            <div class="control-group">
+                <label for="blur">Blur</label>
+                <input type="range" id="blur" min="0" max="50" step="1" value="20">
+                <div class="value-display" id="blurValue">20px</div>
+            </div>
+
+            <div class="control-group">
+                <label for="contrast">Contrast</label>
+                <input type="range" id="contrast" min="50" max="200" step="1" value="130">
+                <div class="value-display" id="contrastValue">130%</div>
+            </div>
+
+            <div class="control-group">
+                <label for="saturate">Saturate</label>
+                <input type="range" id="saturate" min="50" max="300" step="1" value="150">
+                <div class="value-display" id="saturateValue">150%</div>
+            </div>
+
+            <div class="control-group">
+                <label for="borderColor">Border Color</label>
+                <input type="color" id="borderColor" value="#000000">
+            </div>
+
+            <div class="control-group">
+                <label for="borderOpacity">Border Opacity</label>
+                <input type="range" id="borderOpacity" min="0" max="1" step="0.01" value="0.1">
+                <div class="value-display" id="borderOpacityValue">0.1</div>
+            </div>
+
+            <div class="control-group">
+                <label for="borderWidth">Border Width</label>
+                <input type="range" id="borderWidth" min="0" max="5" step="0.1" value="0.5">
+                <div class="value-display" id="borderWidthValue">0.5px</div>
+            </div>
+
+            <div class="control-group">
+                <label for="shadowBlur">Shadow Blur</label>
+                <input type="range" id="shadowBlur" min="0" max="50" step="1" value="12">
+                <div class="value-display" id="shadowBlurValue">12px</div>
+            </div>
+
+            <div class="control-group">
+                <label for="shadowOpacity">Shadow Opacity</label>
+                <input type="range" id="shadowOpacity" min="0" max="1" step="0.01" value="0.1">
+                <div class="value-display" id="shadowOpacityValue">0.1</div>
+            </div>
+
+            <div class="control-group">
+                <label for="borderRadius">Border Radius</label>
+                <input type="range" id="borderRadius" min="0" max="50" step="1" value="16">
+                <div class="value-display" id="borderRadiusValue">16px</div>
+            </div>
+
+            <button class="reset-btn" onclick="resetToDefaults()">Reset to Defaults</button>
+
+            <div class="css-output" id="cssOutput"></div>
+        </div>
+
+        <div class="preview-area">
+            <div class="gradient-strips">
+                <div class="gradient-strip strip-1"></div>
+                <div class="gradient-strip strip-2"></div>
+                <div class="gradient-strip strip-3"></div>
+                <div class="gradient-strip strip-4"></div>
+                <div class="gradient-strip strip-5"></div>
+                <div class="gradient-strip strip-6"></div>
+                <div class="gradient-strip strip-7"></div>
+                <div class="gradient-strip strip-8"></div>
+            </div>
+            
+            <div class="card-container">
+                <div class="liquid-glass" id="liquidGlassCard">
+                    <div class="card-content">
+                        <h2>Liquid Glass</h2>
+                        <p>Adjust the controls to customize the glass morphism effect. Watch how it interacts with the animated background.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const card = document.getElementById('liquidGlassCard');
+        const cssOutput = document.getElementById('cssOutput');
+
+        // Control elements
+        const controls = {
+            bgOpacity: document.getElementById('bgOpacity'),
+            bgColor: document.getElementById('bgColor'),
+            blur: document.getElementById('blur'),
+            contrast: document.getElementById('contrast'),
+            saturate: document.getElementById('saturate'),
+            borderColor: document.getElementById('borderColor'),
+            borderOpacity: document.getElementById('borderOpacity'),
+            borderWidth: document.getElementById('borderWidth'),
+            shadowBlur: document.getElementById('shadowBlur'),
+            shadowOpacity: document.getElementById('shadowOpacity'),
+            borderRadius: document.getElementById('borderRadius')
+        };
+
+        // Value display elements
+        const valueDisplays = {
+            bgOpacity: document.getElementById('bgOpacityValue'),
+            blur: document.getElementById('blurValue'),
+            contrast: document.getElementById('contrastValue'),
+            saturate: document.getElementById('saturateValue'),
+            borderOpacity: document.getElementById('borderOpacityValue'),
+            borderWidth: document.getElementById('borderWidthValue'),
+            shadowBlur: document.getElementById('shadowBlurValue'),
+            shadowOpacity: document.getElementById('shadowOpacityValue'),
+            borderRadius: document.getElementById('borderRadiusValue')
+        };
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function updateCard() {
+            const bgColor = hexToRgb(controls.bgColor.value);
+            const bgOpacity = controls.bgOpacity.value;
+            const blur = controls.blur.value;
+            const contrast = controls.contrast.value;
+            const saturate = controls.saturate.value;
+            const borderColor = hexToRgb(controls.borderColor.value);
+            const borderOpacity = controls.borderOpacity.value;
+            const borderWidth = controls.borderWidth.value;
+            const shadowBlur = controls.shadowBlur.value;
+            const shadowOpacity = controls.shadowOpacity.value;
+            const borderRadius = controls.borderRadius.value;
+
+            // Update card styles
+            card.style.background = `rgba(${bgColor.r}, ${bgColor.g}, ${bgColor.b}, ${bgOpacity})`;
+            card.style.webkitBackdropFilter = `blur(${blur}px) contrast(${contrast}%) saturate(${saturate}%)`;
+            card.style.backdropFilter = `blur(${blur}px) contrast(${contrast}%) saturate(${saturate}%)`;
+            card.style.border = `${borderWidth}px solid rgba(${borderColor.r}, ${borderColor.g}, ${borderColor.b}, ${borderOpacity})`;
+            card.style.boxShadow = `0px 2px ${shadowBlur}px rgba(0, 0, 0, ${shadowOpacity})`;
+            card.style.borderRadius = `${borderRadius}px`;
+
+            // Update value displays
+            valueDisplays.bgOpacity.textContent = bgOpacity;
+            valueDisplays.blur.textContent = `${blur}px`;
+            valueDisplays.contrast.textContent = `${contrast}%`;
+            valueDisplays.saturate.textContent = `${saturate}%`;
+            valueDisplays.borderOpacity.textContent = borderOpacity;
+            valueDisplays.borderWidth.textContent = `${borderWidth}px`;
+            valueDisplays.shadowBlur.textContent = `${shadowBlur}px`;
+            valueDisplays.shadowOpacity.textContent = shadowOpacity;
+            valueDisplays.borderRadius.textContent = `${borderRadius}px`;
+
+            // Update CSS output
+            updateCSSOutput();
+        }
+
+        function updateCSSOutput() {
+            const bgColor = hexToRgb(controls.bgColor.value);
+            const borderColor = hexToRgb(controls.borderColor.value);
+            const css = `.liquid-glass {
+    background: rgba(${bgColor.r}, ${bgColor.g}, ${bgColor.b}, ${controls.bgOpacity.value});
+    border: ${controls.borderWidth.value}px solid rgba(${borderColor.r}, ${borderColor.g}, ${borderColor.b}, ${controls.borderOpacity.value});
+    -webkit-backdrop-filter: blur(${controls.blur.value}px) contrast(${controls.contrast.value}%) saturate(${controls.saturate.value}%);
+    backdrop-filter: blur(${controls.blur.value}px) contrast(${controls.contrast.value}%) saturate(${controls.saturate.value}%);
+    box-shadow: 0px 2px ${controls.shadowBlur.value}px rgba(0, 0, 0, ${controls.shadowOpacity.value});
+    border-radius: ${controls.borderRadius.value}px;
+}`;
+            cssOutput.textContent = css;
+        }
+
+        function resetToDefaults() {
+            controls.bgOpacity.value = 0.4;
+            controls.bgColor.value = '#ffffff';
+            controls.blur.value = 20;
+            controls.contrast.value = 130;
+            controls.saturate.value = 150;
+            controls.borderColor.value = '#000000';
+            controls.borderOpacity.value = 0.1;
+            controls.borderWidth.value = 0.5;
+            controls.shadowBlur.value = 12;
+            controls.shadowOpacity.value = 0.1;
+            controls.borderRadius.value = 16;
+            updateCard();
+        }
+
+        // Add event listeners
+        Object.values(controls).forEach(control => {
+            control.addEventListener('input', updateCard);
+        });
+
+        // Initialize
+        updateCard();
+    </script>
+</body>
+</html>
